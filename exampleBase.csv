@@ -1,0 +1,5 @@
+"","tweet_id","airline_sentiment","airline_sentiment_confidence","negativereason","negativereason_confidence","airline","airline_sentiment_gold","name","negativereason_gold","retweet_count","text","tweet_coord","tweet_created","tweet_location","user_timezone"
+"1","1292390400","neutral","1","","","Delta","","JetBlueNews","","0","a b c d","","2015-02-16 23:36:05 -0800","USA","Sydney"
+"2","1741189120","negative","1","Can't Tell","0.6503","Delta","","nesi_1992","","0","da ef f","","2015-02-16 23:43:02 -0800","undecided","Pacific Time (US & Canada)"
+"122","-1991770112","negative","1","Lost Luggage","1","US Airways","","TheTaxDiva","","0","@USAirways.","","2015-02-17 08:52:49 -0800","MiamiHoustonDCHouston","Central Time (US & Canada)"
+"123","-871874560","negative","1","Customer Service Issue","1","US Airways","","TheTaxDiva","","0","hi there hi","","2015-02-17 08:53:12 -0800","MiamiHoustonDCHouston","Central Time (US & Canada)"
