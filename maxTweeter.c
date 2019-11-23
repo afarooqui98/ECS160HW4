@@ -2,6 +2,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+const int MAX_LINES = 20000;
+const int MAX_CHARS = 1024;
+
 int getWordCount(const char* text, int length)
 {
     int wordCount = 0;
@@ -19,61 +22,53 @@ int getWordCount(const char* text, int length)
     return wordCount;
 }
 
+char* strTok(char** newString, char* delimiter)
+{
+    char* string = *newString;
+    char* delimiterFound = (char*) 0;
+    int tokLength = 0;
+    char* tok = (char*) 0;
+
+    if(!string) return (char*) 0;
+
+    delimiterFound = strstr(string, delimiter);
+
+    if(delimiterFound){
+        tokLength = delimiterFound-string;
+    }else{
+        tokLength = strlen(string);
+    }
+
+    tok = malloc(tokLenght + 1);
+    memcpy(tok, string, tokLength);
+    tok[tokLenght] = '\0';
+
+    *newString = delimiterFound ? delimiterFound + strlen(delimiter) : (char*)0;
+
+    return tok;
+}
+
 const char* getfield(char* line, int num)
 {
-    const char* tok;
-    //for (tok = strtok(line, ","); tok && *tok; tok = strtok(NULL, ",\n"))
-    for (tok = strtok(line, ","); ; tok = strtok(NULL, ",\n"))
-    {
-        if (!--num)
-            return tok;
-    }
+	int i = 0;
+	char* tok;
+	while((tok = strTok(&line, ","))){
+		if(tok && *tok){
+			if(i == num){
+				printf("%s\n", tok);
+				return tok;
+			}
+			printf("%s ", tok);
+			i++;
+			continue;
+		}
+		i++;
+		continue;
+	}
     return NULL;
 }
 
-// int main(int argc, char** argv)
-// {
-//     printf("Input file: %s\n", argv[1]);
-//     FILE* stream = fopen(argv[1], "r");
-
-//     char line[1024];
-//     float lines = 0;
-//     float lenTotal = 0;
-//     while (fgets(line, 1024, stream))
-//     {
-//         char* tmp = strdup(line);
-//         const char* out = getfield(tmp, 12);
-//         float nextLength = strlen(out);
-//         lines++;
-//         printf("Text: %s\n", out);
-//         printf("Length: %f\n", nextLength);
-        
-//         float wC = getWordCount(out, nextLength);
-//         printf("Word Count: %f\n", wC);
-//         int aveCPW = (nextLength - (wC-1))/wC;
-// 		printf("Chars per word: %d\n", aveCPW);
-//         char* wordTwoGuess = (char *) malloc(aveCPW+1 * sizeof(char));
-//         memcpy(wordTwoGuess, &out[aveCPW + 1], aveCPW);
-//         printf("Guess at second word: %s\n", wordTwoGuess);
-
-
-//         if(wC == 2)
-// 	{
-//       	  printf("%c\n", out[2000048]);
-// 	}
-
-// 	if(wC > 5)
-// 	{
-// 	  free(tmp);
-// 	}
-//         lenTotal += nextLength;
-//         // NOTE strtok clobbers tmp
-//         free(tmp);
-//     }
-
-//     printf("Average Tweet Length: %f\n", lenTotal/lines);
-// }
-
+//find the index of the largest element
 int findBiggestIndex(int nums[], int size){
 	int biggest = -1;
 	int index = 0;
@@ -87,6 +82,27 @@ int findBiggestIndex(int nums[], int size){
 	return index;
 }
 
+void killProgram(){
+	printf("Invalid Input Format\n");
+	exit(0);
+}
+
+int getNameIndex(char* temp){
+	char* token = strtok(temp, ",");
+	int index = 0;
+	while(token){
+		printf("%s\n", token);
+		if(strcmp(token, "name") == 0 || strcmp(token, "\"name\"") == 0){
+			return index;
+		}
+
+		token = strtok(NULL, ",");
+		index++;
+	}
+
+	return -1;
+}
+
 //read csv
 //store fields to array
 //propogate through array
@@ -94,13 +110,12 @@ int findBiggestIndex(int nums[], int size){
 //print them all out 
 int main(int argc, char* argv[]){
 	if(argc < 2){
-		printf("please supply an in the form of a csv file or path to csv file as an argument\n");
-		exit(0);
+		killProgram();
 	}
 
 	//array for the whole csv
-	char* names[20000];
-	int numTweetsPerName[20000];
+	char* names[MAX_LINES];
+	int numTweetsPerName[MAX_LINES];
 	int arrayLen = sizeof(numTweetsPerName)/sizeof(numTweetsPerName[0]);
 
 	//set initial value for char array
@@ -110,25 +125,27 @@ int main(int argc, char* argv[]){
 	}
 
 	FILE *stream;
-	char line[1024];
-
+	char line[MAX_CHARS];
 	//error check csv open
     stream = fopen(argv[1], "r");
 	if(stream == NULL){
-		printf("error printing file\n");
-		exit(0);
+		killProgram();
 	}
 
 	int nonce = 0;
-	while(fgets(line, 1024, stream)){
+	int nameIndex;
+	while(fgets(line, MAX_CHARS, stream)){
 		char* tmpLine = strdup(line);
-		//why is out const??
-		const char* out = getfield(tmpLine, 9);
 		if(nonce == 0){
-			printf("%s\n", out);
+			nameIndex = getNameIndex(strdup(line));
+			if(nameIndex == -1){
+				killProgram();
+			}
+			printf("name index is %d\n", nameIndex);
 			nonce++;
 		}
-		
+		//why is out const??
+		const char* out = getfield(tmpLine, nameIndex);
 		for(int i = 0; i < arrayLen; i++){
 			if(strcmp(out, names[i]) == 0){
 				numTweetsPerName[i]++;
