@@ -1,9 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
-const int MAX_LINES = 20000;
-const int MAX_CHARS = 1024;
+#define MAX_LINES 20000
+#define MAX_CHARS 1024
+
 
 int getWordCount(const char* text, int length)
 {
@@ -22,6 +24,35 @@ int getWordCount(const char* text, int length)
     return wordCount;
 }
 
+/*
+* getColIndex - finds the index of a column in a csv header
+*
+* return - the coulmn index; -1 otherwise
+*/
+int getColIndex(char* temp, char* columnName){
+	char* token = strtok(temp, ",");
+	int index = 0;
+	char quotedCol[50];
+	sprintf(quotedCol, "\"%s\"", columnName);
+	printf("Quoted COl: %s\n", quotedCol);
+	while(token){
+		printf("%s\n", token);
+		if(strcmp(token, columnName) == 0 || strcmp(token, quotedCol) == 0){
+			return index;
+		}
+
+		token = strtok(NULL, ",");
+		index++;
+	}
+
+	return -1;
+}
+
+/*
+* strTok - custom strtok functon that is able to handle empty elements between delimeters
+*
+* return - the token from the string if a delimeter is found; otherwise NULL
+*/
 char* strTok(char** newString, char* delimiter)
 {
     char* string = *newString;
@@ -39,19 +70,25 @@ char* strTok(char** newString, char* delimiter)
         tokLength = strlen(string);
     }
 
-    tok = malloc(tokLenght + 1);
+    tok = malloc(tokLength + 1);
     memcpy(tok, string, tokLength);
-    tok[tokLenght] = '\0';
+    tok[tokLength] = '\0';
 
     *newString = delimiterFound ? delimiterFound + strlen(delimiter) : (char*)0;
 
     return tok;
 }
 
+/*
+* getfield - finds an element in a line given the column index for that element
+*
+* return - the element if it is present in the line, NULL otherwise
+*/
 const char* getfield(char* line, int num)
 {
 	int i = 0;
 	char* tok;
+
 	while((tok = strTok(&line, ","))){
 		if(tok && *tok){
 			if(i == num){
@@ -65,8 +102,76 @@ const char* getfield(char* line, int num)
 		i++;
 		continue;
 	}
+
     return NULL;
 }
+
+bool validateLine(char* line, int tweetIndex){
+	bool isValid = true;
+	int numQuotes = 0;
+	//int numComma = 0;
+	char* tmpLine = strdup(line);
+	//check that all quotes are matching
+	while(*tmpLine != '\0'){
+		if(*tmpLine == '\"'){
+			numQuotes++;
+		}
+		tmpLine++;
+	}
+	//the number of quotes in a line is not even
+	if(numQuotes%2 != 0){
+		isValid = false;
+		printf("Number of quotes is not even.\n");
+	}
+	printf("Number of quotes: %d\n", numQuotes);
+	//check that tweet does not contain a comma
+
+	const char* tweet = getfield(strdup(line), tweetIndex);
+	if(tweet == NULL){
+		isValid = false;
+		printf("No tweet found\n");
+	}
+	else{
+		//check that the tweet does not contain a comma
+		printf("TWEET: %s\n", tweet);
+		//verify tweet has proper amount of quotes:
+		numQuotes = 0;
+		tmpLine = strdup(tweet);
+		while(*tmpLine != '\0'){
+			if(*tmpLine == '\"'){
+				numQuotes++;
+			}
+			tmpLine++;
+		}
+		if(numQuotes%2 != 0){
+			isValid = false;
+			printf("Tweet has unmatching quotes.\n");
+		}
+
+		//Try to check for commas, after testing it seems
+		//that a comma causes the tweet to be cut off
+		// so the proper way of testing for a comma would
+		// be to look for an unmatched quote
+
+		//Is this necessary? 
+		// while(*tweet != '\0'){
+		// 	if(*tweet == ','){
+		// 		numComma++;
+		// 	}
+		// 	tweet++;
+		// }
+		// printf("Number of commas: %d\n", numComma);
+		// //tweets that contain commas are not valid
+		// if(numComma > 0){
+		// 	isValid = false;
+		// 	printf("Tweet has a comma.\n");
+		// }
+	}
+
+	//TODO: Check other cases that invalidate the line
+	return isValid;
+}
+
 
 //find the index of the largest element
 int findBiggestIndex(int nums[], int size){
@@ -87,21 +192,6 @@ void killProgram(){
 	exit(0);
 }
 
-int getNameIndex(char* temp){
-	char* token = strtok(temp, ",");
-	int index = 0;
-	while(token){
-		printf("%s\n", token);
-		if(strcmp(token, "name") == 0 || strcmp(token, "\"name\"") == 0){
-			return index;
-		}
-
-		token = strtok(NULL, ",");
-		index++;
-	}
-
-	return -1;
-}
 
 //read csv
 //store fields to array
@@ -132,29 +222,43 @@ int main(int argc, char* argv[]){
 		killProgram();
 	}
 
-	int nonce = 0;
+	bool isFirstLine = true;
 	int nameIndex;
+	int textIndex;
 	while(fgets(line, MAX_CHARS, stream)){
 		char* tmpLine = strdup(line);
-		if(nonce == 0){
-			nameIndex = getNameIndex(strdup(line));
-			if(nameIndex == -1){
+		if(isFirstLine){
+			nameIndex = getColIndex(strdup(line), "name");
+			textIndex = getColIndex(strdup(line), "text");
+			if(nameIndex == -1 || textIndex == -1){
 				killProgram();
 			}
 			printf("name index is %d\n", nameIndex);
-			nonce++;
+			printf("text index is %d\n", textIndex);
+			isFirstLine = false;
 		}
-		//why is out const??
-		const char* out = getfield(tmpLine, nameIndex);
-		for(int i = 0; i < arrayLen; i++){
-			if(strcmp(out, names[i]) == 0){
-				numTweetsPerName[i]++;
-				break;
-			}else{
-				if(strcmp(names[i], "") == 0){
-					names[i] = strdup(out);
-					numTweetsPerName[i]++;
-					break;
+		if(!validateLine(tmpLine, textIndex)){
+			//Kill or continue?
+			killProgram();
+		}
+		else{
+			const char* name = getfield(tmpLine, nameIndex);
+			if(name == NULL){
+				//Kill or continue?
+				continue;
+			}
+			else{
+				for(int i = 0; i < arrayLen; i++){
+					if(strcmp(name, names[i]) == 0){
+						numTweetsPerName[i]++;
+						break;
+					}else{
+						if(strcmp(names[i], "") == 0){
+							names[i] = strdup(name);
+							numTweetsPerName[i]++;
+							break;
+						}
+					}
 				}
 			}
 		}
@@ -173,7 +277,7 @@ int main(int argc, char* argv[]){
 		strcpy(names[index], "");
 		numTweetsPerName[index] = 0;
 	}
-
+	//TODO: format the output properly (remove extra quotes around names & extra lines)
 	for(int i = 0; i < 10; i++){
 		printf("%s: %d\n", topNames[i], topTweetsPerName[i]);
 	}
