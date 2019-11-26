@@ -187,9 +187,9 @@ int findBiggestIndex(int nums[], int size){
 	return index;
 }
 
-void killProgram(){
+int killProgram(){
 	printf("Invalid Input Format\n");
-	exit(0);
+	return 0;
 }
 
 
@@ -200,7 +200,7 @@ void killProgram(){
 //print them all out 
 int main(int argc, char* argv[]){
 	if(argc < 2){
-		killProgram();
+		return killProgram();
 	}
 
 	//array for the whole csv
@@ -219,7 +219,7 @@ int main(int argc, char* argv[]){
 	//error check csv open
     stream = fopen(argv[1], "r");
 	if(stream == NULL){
-		killProgram();
+		return killProgram();
 	}
 
 	bool isFirstLine = true;
@@ -231,7 +231,7 @@ int main(int argc, char* argv[]){
 			nameIndex = getColIndex(strdup(line), "name");
 			textIndex = getColIndex(strdup(line), "text");
 			if(nameIndex == -1 || textIndex == -1){
-				killProgram();
+				return killProgram();
 			}
 			printf("name index is %d\n", nameIndex);
 			printf("text index is %d\n", textIndex);
@@ -239,7 +239,7 @@ int main(int argc, char* argv[]){
 		}
 		if(!validateLine(tmpLine, textIndex)){
 			//Kill or continue?
-			killProgram();
+			return killProgram();
 		}
 		else{
 			const char* name = getfield(tmpLine, nameIndex);
@@ -272,9 +272,9 @@ int main(int argc, char* argv[]){
 		int index = findBiggestIndex(numTweetsPerName, arrayLen);
 		topNames[i] = strdup(names[index]);
 		topTweetsPerName[i] = numTweetsPerName[index];
-
+		
 		//remove the largest element to get the next largest
-		strcpy(names[index], "");
+		// strcpy(names[index], "");
 		numTweetsPerName[index] = 0;
 	}
 	//TODO: format the output properly (remove extra quotes around names & extra lines)
