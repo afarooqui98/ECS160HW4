@@ -6,24 +6,6 @@
 #define MAX_LINES 20000
 #define MAX_CHARS 1024
 
-
-int getWordCount(const char* text, int length)
-{
-    int wordCount = 0;
-    if(length >= 2) //Due to quotes;
-    {
-        wordCount += 1;
-    }
-    int i = 0;
-    for(i = 0; i < length; i++){
-    	if(' ' == text[i])
-  		{
-    		wordCount++;
-    	}
-    }
-    return wordCount;
-}
-
 /*
 * getColIndex - finds the index of a column in a csv header
 *
