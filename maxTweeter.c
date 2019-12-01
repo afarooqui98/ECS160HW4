@@ -33,7 +33,7 @@ int getColIndex(char* temp, char* columnName){
 /*
 * strTok - custom strtok functon that is able to handle empty elements between delimeters
 *
-* return - the token from the string if a delimeter is found; otherwise NULL
+* return - the token from the string if a delimeter is found; otherwise (char*)0
 */
 char* strTok(char** newString, char* delimiter)
 {
@@ -190,7 +190,7 @@ int main(int argc, char* argv[]){
 	int numTweetsPerName[MAX_LINES];
 	int arrayLen = sizeof(numTweetsPerName)/sizeof(numTweetsPerName[0]);
 
-	//set initial value for char array
+	//set initial value for arrays
 	for(int i = 0; i <  arrayLen; i++){
 		names[i] = "";
 		numTweetsPerName[i] = 0;
@@ -209,14 +209,16 @@ int main(int argc, char* argv[]){
 	int textIndex;
 	while(fgets(line, MAX_CHARS, stream)){
 		char* tmpLine = strdup(line);
+
+		//get the index of name
 		if(isFirstLine){
 			nameIndex = getColIndex(strdup(line), "name");
 			textIndex = getColIndex(strdup(line), "text");
 			if(nameIndex == -1 || textIndex == -1){
 				return killProgram();
 			}
-			printf("name index is %d\n", nameIndex);
-			printf("text index is %d\n", textIndex);
+			// printf("name index is %d\n", nameIndex);
+			// printf("text index is %d\n", textIndex);
 			isFirstLine = false;
 		}
 		if(!validateLine(tmpLine, textIndex)){
@@ -251,16 +253,19 @@ int main(int argc, char* argv[]){
 	int topTweetsPerName[10] = {0,0,0,0,0,0,0,0,0,0};
 	for(int i = 0; i < 10; i++){
 		//find index of largest value and set it
-		int index = findBiggestIndex(numTweetsPerName, arrayLen);
-		topNames[i] = strdup(names[index]);
-		topTweetsPerName[i] = numTweetsPerName[index];
+		int biggestIndex = findBiggestIndex(numTweetsPerName, arrayLen);
+		topNames[i] = strdup(names[biggestIndex]);
+		topTweetsPerName[i] = numTweetsPerName[biggestIndex];
 		
 		//remove the largest element to get the next largest
-		// strcpy(names[index], "");
-		numTweetsPerName[index] = 0;
+		numTweetsPerName[biggestIndex] = 0;
 	}
 	//TODO: format the output properly (remove extra quotes around names & extra lines)
 	for(int i = 0; i < 10; i++){
+		if(topTweetsPerName[i] == 0){
+			continue;
+		}
+
 		printf("%s: %d\n", topNames[i], topTweetsPerName[i]);
 	}
 }
