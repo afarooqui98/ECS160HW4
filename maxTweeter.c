@@ -206,25 +206,24 @@ int main(int argc, char* argv[]){
 
 	bool isFirstLine = true;
 	int nameIndex;
-	int textIndex;
+	// int textIndex;
 	while(fgets(line, MAX_CHARS, stream)){
 		char* tmpLine = strdup(line);
 
 		//get the index of name
 		if(isFirstLine){
 			nameIndex = getColIndex(strdup(line), "name");
-			textIndex = getColIndex(strdup(line), "text");
-			if(nameIndex == -1 || textIndex == -1){
+			if(nameIndex == -1){
 				return killProgram();
 			}
 			// printf("name index is %d\n", nameIndex);
 			// printf("text index is %d\n", textIndex);
 			isFirstLine = false;
 		}
-		if(!validateLine(tmpLine, textIndex)){
-			//Kill or continue?
-			return killProgram();
-		}
+		// if(!validateLine(tmpLine, textIndex)){
+		// 	//Kill or continue?
+		// 	return killProgram();
+		// }
 		else{
 			const char* name = getfield(tmpLine, nameIndex);
 			if(name == NULL){
