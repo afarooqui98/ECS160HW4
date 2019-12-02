@@ -53,10 +53,9 @@ int getColIndex(char* temp, char* columnName){
 	sprintf(quotedCol, "\"%s\"", columnName);
 	sprintf(colWithNewLine, "%s\n", columnName);
 	sprintf(quotedColWithNewLine, "\"%s\"\n", columnName);
-	// printf("Quoted COl: %s\n", quotedCol);
 
 	while((token = strTok(&temp, ","))){
-		// printf("%s\n", token);
+		//check all possible formats of a column name
 		if(strcmp(token, columnName) == 0 
 			|| strcmp(token, quotedCol) == 0 
 			|| strcmp(token, colWithNewLine) == 0 
@@ -96,7 +95,11 @@ const char* getfield(char* line, int num)
     return NULL;
 }
 
-//Count the columns in a line
+/*
+* countCols - Count the total columns(comma seperated) in a line
+*
+* return - number of columns in a line if commas exist; otherwise -1
+*/
 int countCols(char* line){
 	int totalCommas = 0;
 
@@ -116,6 +119,11 @@ int countCols(char* line){
 	return totalCommas;
 }
 
+/*
+* validateLine - checks the number of columns in a line match the header columns
+*
+* return - true if line is valid; false otherwise
+*/
 bool validateLine(char* line, int headerCols){
 	bool isValid = true;
 	int numCols = 0;
@@ -139,7 +147,11 @@ bool validateLine(char* line, int headerCols){
 	return isValid;
 }
 
-//find the index of the largest element
+/*
+* findBiggestIndex - finds the index of the largest element
+*
+* return - the index if available; -1 otherwise
+*/
 int findBiggestIndex(int nums[], int size){
 	int biggest = -1;
 	int index = 0;
@@ -153,17 +165,24 @@ int findBiggestIndex(int nums[], int size){
 	return index;
 }
 
+/*
+* killProgram - prints invalid output and ends the program
+*
+* return - 0
+*/
 int killProgram(){
 	printf("Invalid Input Format\n");
 	return 0;
 }
 
 
-//read csv
-//store fields to array
-//propogate through array
-//define 10th, 9th ... 1st
-//print them all out 
+/*
+* main - reads the csv, stores the name fields into and array,
+*		 increments the count array at the matching index for the name,
+* 		 define a top 10 name and count array and get the top 10 tweeters
+*		 print the top tweeters
+* return - prints the top tweeters if available and returns 0; prints invalid input otherwise
+*/
 int main(int argc, char* argv[]){
 	if(argc < 2){
 		return killProgram();
@@ -194,19 +213,18 @@ int main(int argc, char* argv[]){
 	while(fgets(line, MAX_CHARS, stream)){
 		char* tmpLine = strdup(line);
 
-		//get the index of name
+		//first line is header
 		if(isFirstLine){
+			//get the index of name
 			nameIndex = getColIndex(strdup(line), "name");
+			//get the total columns in the header
 			headerCols = countCols(strdup(line));
 			if(nameIndex == -1 || headerCols == -1){
 				return killProgram();
 			}
-			// printf("name index is %d\n", nameIndex);
-			// printf("header columns: %d\n", headerCols);
 		}
-
+		//verify that the line has the same number of columns as the header
 		if(!validateLine(tmpLine, headerCols)){
-			//Kill or continue?
 			return killProgram();
 		} else{
 			if(isFirstLine){
@@ -216,10 +234,10 @@ int main(int argc, char* argv[]){
 
 			const char* name = getfield(tmpLine, nameIndex);
 			if(name == NULL){
-				//Kill or continue?
 				continue;
 			}
 			else{
+				//add name to name array and increment the count array for that name index
 				for(int i = 0; i < arrayLen; i++){
 					if(strcmp(name, names[i]) == 0){
 						numTweetsPerName[i]++;
@@ -237,6 +255,7 @@ int main(int argc, char* argv[]){
 		free(tmpLine);
 	}
 
+	//get the top 10 names in the name array, and fill the counts for the names
 	char* topNames[10] = {"", "", "", "", "", "", "", "", "", ""};
 	int topTweetsPerName[10] = {0,0,0,0,0,0,0,0,0,0};
 	for(int i = 0; i < 10; i++){
@@ -249,7 +268,7 @@ int main(int argc, char* argv[]){
 		numTweetsPerName[biggestIndex] = 0;
 	}
 	
-	//TODO: format the output properly (remove extra quotes around names & extra lines)
+	//print the Top names formatted properly
 	for(int i = 0; i < 10; i++){
 		if(topTweetsPerName[i] == 0){
 			continue;
