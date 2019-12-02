@@ -96,70 +96,46 @@ const char* getfield(char* line, int num)
     return NULL;
 }
 
-bool validateLine(char* line, int tweetIndex){
-	bool isValid = true;
-	int numQuotes = 0;
-	//int numComma = 0;
+//Count the columns in a line
+int countCols(char* line){
+	int totalCommas = 0;
+
 	char* tmpLine = strdup(line);
-	//check that all quotes are matching
+
 	while(*tmpLine != '\0'){
-		if(*tmpLine == '\"'){
-			numQuotes++;
+		if(*tmpLine == ','){
+			totalCommas++;
 		}
 		tmpLine++;
 	}
-	//the number of quotes in a line is not even
-	if(numQuotes%2 != 0){
-		isValid = false;
-		printf("Number of quotes is not even.\n");
-	}
-	printf("Number of quotes: %d\n", numQuotes);
-	//check that tweet does not contain a comma
 
-	//TODO: remove??
-	const char* tweet = getfield(strdup(line), tweetIndex);
-	if(tweet == NULL){
-		isValid = false;
-		printf("No tweet found\n");
+	if(totalCommas == 0){
+		return -1;
 	}
-	else{
-		//check that the tweet does not contain a comma
-		printf("TWEET: %s\n", tweet);
-		//verify tweet has proper amount of quotes:
-		numQuotes = 0;
-		tmpLine = strdup(tweet);
-		while(*tmpLine != '\0'){
-			if(*tmpLine == '\"'){
-				numQuotes++;
-			}
-			tmpLine++;
+
+	return totalCommas;
+}
+
+bool validateLine(char* line, int headerCols){
+	bool isValid = true;
+	int numCols = 0;
+	
+	char* tmpLine = strdup(line);
+	//check that number of columns (comma seperated) match
+	// the number of columns in the header
+	while(*tmpLine != '\0'){
+		if(*tmpLine == ','){
+			numCols++;
 		}
-		if(numQuotes%2 != 0){
-			isValid = false;
-			printf("Tweet has unmatching quotes.\n");
-		}
-
-		//Try to check for commas, after testing it seems
-		//that a comma causes the tweet to be cut off
-		// so the proper way of testing for a comma would
-		// be to look for an unmatched quote
-
-		//Is this necessary? 
-		// while(*tweet != '\0'){
-		// 	if(*tweet == ','){
-		// 		numComma++;
-		// 	}
-		// 	tweet++;
-		// }
-		// printf("Number of commas: %d\n", numComma);
-		// //tweets that contain commas are not valid
-		// if(numComma > 0){
-		// 	isValid = false;
-		// 	printf("Tweet has a comma.\n");
-		// }
+		tmpLine++;
 	}
-
-	//TODO: Check other cases that invalidate the line
+	//the number of commas does not match the header
+	if(numCols != headerCols){
+		isValid = false;
+		printf("Number of columns does not match header.\n");
+	}
+	printf("Number of columns: %d\n", numCols);
+	
 	return isValid;
 }
 
@@ -214,24 +190,22 @@ int main(int argc, char* argv[]){
 
 	bool isFirstLine = true;
 	int nameIndex;
-	int textIndex;
+	int headerCols;
 	while(fgets(line, MAX_CHARS, stream)){
 		char* tmpLine = strdup(line);
 
 		//get the index of name
 		if(isFirstLine){
 			nameIndex = getColIndex(strdup(line), "name");
-
-			//TODO: remove??
-			textIndex = getColIndex(strdup(line), "text");
-			if(nameIndex == -1){
+			headerCols = countCols(strdup(line));
+			if(nameIndex == -1 || headerCols == -1){
 				return killProgram();
 			}
 			printf("name index is %d\n", nameIndex);
-			printf("text index is %d\n", textIndex);
+			printf("header columns: %d\n", headerCols);
 		}
 
-		if(!validateLine(tmpLine, textIndex)){
+		if(!validateLine(tmpLine, headerCols)){
 			//Kill or continue?
 			return killProgram();
 		} else{
@@ -279,7 +253,15 @@ int main(int argc, char* argv[]){
 		if(topTweetsPerName[i] == 0){
 			continue;
 		}
+		char* tmpname = topNames[i];
+		char* token;
+		while((token = strTok(&tmpname, "\""))){
+			topNames[i] = token;
 
+			if(strlen(topNames[i]) > 0){
+				break;
+			}
+		}
 		printf("%s: %d\n", topNames[i], topTweetsPerName[i]);
 	}
 }
