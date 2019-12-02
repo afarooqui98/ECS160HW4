@@ -7,30 +7,6 @@
 #define MAX_CHARS 1024
 
 /*
-* getColIndex - finds the index of a column in a csv header
-*
-* return - the coulmn index; -1 otherwise
-*/
-int getColIndex(char* temp, char* columnName){
-	char* token = strtok(temp, ",");
-	int index = 0;
-	char quotedCol[50];
-	sprintf(quotedCol, "\"%s\"", columnName);
-	printf("Quoted COl: %s\n", quotedCol);
-	while(token){
-		printf("%s\n", token);
-		if(strcmp(token, columnName) == 0 || strcmp(token, quotedCol) == 0){
-			return index;
-		}
-
-		token = strtok(NULL, ",");
-		index++;
-	}
-
-	return -1;
-}
-
-/*
 * strTok - custom strtok functon that is able to handle empty elements between delimeters
 *
 * return - the token from the string if a delimeter is found; otherwise (char*)0
@@ -59,6 +35,38 @@ char* strTok(char** newString, char* delimiter)
     *newString = delimiterFound ? delimiterFound + strlen(delimiter) : (char*)0;
 
     return tok;
+}
+
+/*
+* getColIndex - finds the index of a column in a csv header
+*
+* return - the coulmn index; -1 otherwise
+*/
+int getColIndex(char* temp, char* columnName){
+	char* token;
+	int index = 0;
+
+	//all the possible permutations of token "formats"
+	char quotedCol[50];
+	char colWithNewLine[50];
+	char quotedColWithNewLine[50];
+	sprintf(quotedCol, "\"%s\"", columnName);
+	sprintf(colWithNewLine, "%s\n", columnName);
+	sprintf(quotedColWithNewLine, "\"%s\"\n", columnName);
+	printf("Quoted COl: %s\n", quotedCol);
+
+	while((token = strTok(&temp, ","))){
+		printf("%s\n", token);
+		if(strcmp(token, columnName) == 0 
+			|| strcmp(token, quotedCol) == 0 
+			|| strcmp(token, colWithNewLine) == 0 
+			|| strcmp(token, quotedColWithNewLine) == 0){
+			return index;
+		}
+		index++;
+	}
+
+	return -1;
 }
 
 /*
@@ -108,6 +116,7 @@ bool validateLine(char* line, int tweetIndex){
 	printf("Number of quotes: %d\n", numQuotes);
 	//check that tweet does not contain a comma
 
+	//TODO: remove??
 	const char* tweet = getfield(strdup(line), tweetIndex);
 	if(tweet == NULL){
 		isValid = false;
@@ -212,18 +221,25 @@ int main(int argc, char* argv[]){
 		//get the index of name
 		if(isFirstLine){
 			nameIndex = getColIndex(strdup(line), "name");
+
+			//TODO: remove??
+			textIndex = getColIndex(strdup(line), "text");
 			if(nameIndex == -1){
 				return killProgram();
 			}
-			// printf("name index is %d\n", nameIndex);
-			// printf("text index is %d\n", textIndex);
-			isFirstLine = false;
+			printf("name index is %d\n", nameIndex);
+			printf("text index is %d\n", textIndex);
 		}
 
 		if(!validateLine(tmpLine, textIndex)){
 			//Kill or continue?
 			return killProgram();
 		} else{
+			if(isFirstLine){
+				isFirstLine = false;
+				continue;
+			}
+
 			const char* name = getfield(tmpLine, nameIndex);
 			if(name == NULL){
 				//Kill or continue?
