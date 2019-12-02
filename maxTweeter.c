@@ -154,7 +154,6 @@ bool validateLine(char* line, int tweetIndex){
 	return isValid;
 }
 
-
 //find the index of the largest element
 int findBiggestIndex(int nums[], int size){
 	int biggest = -1;
@@ -206,7 +205,7 @@ int main(int argc, char* argv[]){
 
 	bool isFirstLine = true;
 	int nameIndex;
-	// int textIndex;
+	int textIndex;
 	while(fgets(line, MAX_CHARS, stream)){
 		char* tmpLine = strdup(line);
 
@@ -220,11 +219,11 @@ int main(int argc, char* argv[]){
 			// printf("text index is %d\n", textIndex);
 			isFirstLine = false;
 		}
-		// if(!validateLine(tmpLine, textIndex)){
-		// 	//Kill or continue?
-		// 	return killProgram();
-		// }
-		else{
+
+		if(!validateLine(tmpLine, textIndex)){
+			//Kill or continue?
+			return killProgram();
+		} else{
 			const char* name = getfield(tmpLine, nameIndex);
 			if(name == NULL){
 				//Kill or continue?
