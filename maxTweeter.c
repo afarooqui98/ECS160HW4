@@ -53,10 +53,10 @@ int getColIndex(char* temp, char* columnName){
 	sprintf(quotedCol, "\"%s\"", columnName);
 	sprintf(colWithNewLine, "%s\n", columnName);
 	sprintf(quotedColWithNewLine, "\"%s\"\n", columnName);
-	printf("Quoted COl: %s\n", quotedCol);
+	// printf("Quoted COl: %s\n", quotedCol);
 
 	while((token = strTok(&temp, ","))){
-		printf("%s\n", token);
+		// printf("%s\n", token);
 		if(strcmp(token, columnName) == 0 
 			|| strcmp(token, quotedCol) == 0 
 			|| strcmp(token, colWithNewLine) == 0 
@@ -82,10 +82,10 @@ const char* getfield(char* line, int num)
 	while((tok = strTok(&line, ","))){
 		if(tok && *tok){
 			if(i == num){
-				printf("%s\n", tok);
+				// printf("%s\n", tok);
 				return tok;
 			}
-			printf("%s ", tok);
+			// printf("%s ", tok);
 			i++;
 			continue;
 		}
@@ -132,9 +132,9 @@ bool validateLine(char* line, int headerCols){
 	//the number of commas does not match the header
 	if(numCols != headerCols){
 		isValid = false;
-		printf("Number of columns does not match header.\n");
+		// printf("Number of columns does not match header.\n");
 	}
-	printf("Number of columns: %d\n", numCols);
+	// printf("Number of columns: %d\n", numCols);
 	
 	return isValid;
 }
@@ -201,8 +201,8 @@ int main(int argc, char* argv[]){
 			if(nameIndex == -1 || headerCols == -1){
 				return killProgram();
 			}
-			printf("name index is %d\n", nameIndex);
-			printf("header columns: %d\n", headerCols);
+			// printf("name index is %d\n", nameIndex);
+			// printf("header columns: %d\n", headerCols);
 		}
 
 		if(!validateLine(tmpLine, headerCols)){
@@ -248,6 +248,7 @@ int main(int argc, char* argv[]){
 		//remove the largest element to get the next largest
 		numTweetsPerName[biggestIndex] = 0;
 	}
+	
 	//TODO: format the output properly (remove extra quotes around names & extra lines)
 	for(int i = 0; i < 10; i++){
 		if(topTweetsPerName[i] == 0){
